@@ -110,7 +110,7 @@ main = do
   str <- readFile "input-day-4.txt"
   let matrices = splitOn null $ map (map read . words) (lines str) :: [[[Int]]]
   let toBingoBoards = map initBoard matrices
-  print $ runBingo numbers toBingoBoards
+  print $ getLastBoardToWin numbers toBingoBoards
 
 grid :: [[Int]]
 grid =
@@ -121,6 +121,16 @@ grid =
     [57, 52, 05, 27, 76]
   ]
 
+-- Part B
+getLastBoardToWin :: [Int] -> [[[(Int, Bool)]]] -> Int
+getLastBoardToWin (x : xs) boards = if null bs
+  then runBingo xs [b]
+  else getLastBoardToWin xs unwonBoards
+  where
+    newBoards = map (`markBoard` x) boards
+    unwonBoards@(b:bs) = filter (not . isBoardBingo) newBoards
+
+-- Part A
 runBingo :: [Int] -> [[[(Int, Bool)]]] -> Int
 runBingo [] _ = 0
 runBingo (x : xs) allBoards =
