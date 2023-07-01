@@ -1,21 +1,19 @@
 import Data.HashMap.Internal (HashMap, (!))
 import Data.HashMap.Internal qualified as HM
 
+type Point = (Int, Int)
+type Segment = (Point, Point)
+
 main :: IO ()
 main = do
   file <- readFile "input-day-5.txt"
   let segments = map parseLineToSegment $ lines file
-  let verHorSegments = straightSegments segments
-  let finalState = markAllSegments verHorSegments
-  let res = pointsTraversedMoreThanOne finalState
+  let finalState = markAllSegments segments
+  let res = pointsTraversedMoreThanOnce finalState
   print res
 
-type Point = (Int, Int)
-
-type Segment = (Point, Point)
-
-pointsTraversedMoreThanOne :: HashMap Point Int -> Int
-pointsTraversedMoreThanOne hm = length $ filter (\(k, v) -> v > 1) $ HM.toList hm
+pointsTraversedMoreThanOnce :: HashMap Point Int -> Int
+pointsTraversedMoreThanOnce hm = length $ filter (\(k, v) -> v > 1) $ HM.toList hm
 
 parseLineToSegment :: String -> Segment
 parseLineToSegment str = ((read x1, read y1), (read x2, read y2))
@@ -26,21 +24,23 @@ parseLineToSegment str = ((read x1, read y1), (read x2, read y2))
     y2 = tail rest''
 
 markAllSegments :: [Segment] -> HashMap Point Int
-markAllSegments = foldl markStraightSegment HM.empty
+markAllSegments = foldl markSegment HM.empty
 
-markStraightSegment :: HashMap Point Int -> Segment -> HashMap Point Int
-markStraightSegment hm ((x1, y1), (x2, y2))
-  | isHorizontal = markPoints [(x, y1) | x <- [min x1 x2 .. max x1 x2]]
-  | otherwise = markPoints [(x1, y) | y <- [min y1 y2 .. max y1 y2]]
-  where
-    isHorizontal = y2 == y1
-    markPoints = foldl markPoint hm
+markSegment :: HashMap Point Int -> Segment -> HashMap Point Int
+markSegment hm seg@((x1, y1), (x2, y2)) = foldl markPoint hm (allPointsInSegment seg)
 
-straightSegments :: [Segment] -> [Segment]
-straightSegments = filter verHor
-  where
-    verHor :: Segment -> Bool
-    verHor ((x1, y1), (x2, y2)) = x1 == x2 || y1 == y2
+allPointsInSegment :: Segment -> [Point]
+allPointsInSegment (p1@(x1, y1), p2@(x2, y2))
+  | x1 == x2 = [(x1, y) | y <- [min y1 y2 .. max y1 y2]]
+  | y1 == y2 = [(x, y1) | x <- [min x1 x2 .. max x1 x2]]
+  | x2 > x1 =
+      zip
+        [x1 .. x2]
+        (if y2 > y1 then [y1 .. y2] else [y1, y1 - 1 .. y2])
+  | x1 > x2 =
+      zip
+        [x1, x1 - 1 .. x2]
+        (if y2 > y1 then [y1 .. y2] else [y1, y1 - 1 .. y2])
 
 markPoint :: HashMap Point Int -> Point -> HashMap Point Int
 markPoint m p
