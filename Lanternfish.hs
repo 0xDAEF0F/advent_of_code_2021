@@ -1,8 +1,7 @@
 module Lanternfish () where
 
-import Data.Map (Map, findWithDefault, (!))
+import Data.Map (Map, (!))
 import Data.Map qualified as M
-import InputDaySix (fish)
 
 type Fish = Map Integer Integer
 
@@ -22,8 +21,13 @@ fishTotal fish = foldr sumF 0 (M.toList fish)
     sumF (_, v1) v2 = v1 + v2
 
 goDay :: Fish -> Fish
-goDay f = returnFishes
+goDay f = M.insert 6 sixes withEights
   where
-    f' = M.fromList (map (\(k, v) -> (k - 1, v)) $ M.toList f)
-    spawns = findWithDefault 0 (-1) f'
-    returnFishes = M.insert 6 sixes (M.insert 8 spawns (M.delete (-1) f'))
+    f' = M.mapKeys (subtract 1) f
+    f'' = M.delete (-1) f'
+    spawns = M.findWithDefault 0 (-1) f'
+    sixes = M.findWithDefault 0 6 f' + spawns
+    withEights = M.insert 8 spawns f''
+
+goDays 0 fish = fish
+goDays days fish = goDays (days - 1) (goDay fish)
