@@ -1,5 +1,7 @@
 {-# LANGUAGE TupleSections #-}
 
+module GiantSquid (splitOn) where
+
 import Data.List (find, transpose)
 import Data.Maybe (isNothing)
 
@@ -123,12 +125,13 @@ grid =
 
 -- Part B
 getLastBoardToWin :: [Int] -> [[[(Int, Bool)]]] -> Int
-getLastBoardToWin (x : xs) boards = if null bs
-  then runBingo xs [b]
-  else getLastBoardToWin xs unwonBoards
+getLastBoardToWin (x : xs) boards =
+  if null bs
+    then runBingo xs [b]
+    else getLastBoardToWin xs unwonBoards
   where
     newBoards = map (`markBoard` x) boards
-    unwonBoards@(b:bs) = filter (not . isBoardBingo) newBoards
+    unwonBoards@(b : bs) = filter (not . isBoardBingo) newBoards
 
 -- Part A
 runBingo :: [Int] -> [[[(Int, Bool)]]] -> Int
